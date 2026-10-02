@@ -13,6 +13,13 @@ target_include_directories(tinycodec_core PUBLIC
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 tinycodec_configure_library(tinycodec_core)
 
+install(TARGETS tinycodec_core EXPORT tinycodec-core-targets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(EXPORT tinycodec-core-targets
+    NAMESPACE tinycodec::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/tinycodec)
+
 if(TINYCODEC_BUILD_TESTS)
     tinycodec_add_test(tinycodec_core_test
         test/test_accept.cpp

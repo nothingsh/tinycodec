@@ -40,3 +40,34 @@ add_subdirectory(formats/json)
 if(TINYCODEC_BUILD_TOOLS)
     add_subdirectory(tools/convert)
 endif()
+
+# Package files, so that an installed tinycodec can be found with
+#   find_package(tinycodec REQUIRED COMPONENTS json)
+include(CMakePackageConfigHelpers)
+set(TINYCODEC_INSTALL_CMAKEDIR ${CMAKE_INSTALL_LIBDIR}/cmake/tinycodec)
+configure_package_config_file(
+    cmake/tinycodecConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/tinycodecConfig.cmake
+    INSTALL_DESTINATION ${TINYCODEC_INSTALL_CMAKEDIR})
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/tinycodecConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion)
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/tinycodecConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/tinycodecConfigVersion.cmake
+    DESTINATION ${TINYCODEC_INSTALL_CMAKEDIR})
+
+if(TINYCODEC_BUILD_TESTS)
+    # Installs this build into a scratch directory and builds tests/consumer
+    # against it, the way an outside project would use the library.
+    add_test(NAME tinycodec_consumer
+        COMMAND ${CMAKE_COMMAND}
+            -DBUILD_DIR=${CMAKE_BINARY_DIR}
+            -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/tests/consumer
+            -DWORK_DIR=${CMAKE_BINARY_DIR}/consumer-test
+            -DCXX_COMPILER=${CMAKE_CXX_COMPILER}
+            "-DCXX_FLAGS=${CMAKE_CXX_FLAGS}"
+            "-DBUILD_TYPE=${CMAKE_BUILD_TYPE}"
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/consumer/run_consumer.cmake)
+endif()

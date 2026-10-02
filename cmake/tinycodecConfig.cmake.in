@@ -1,0 +1,22 @@
+@PACKAGE_INIT@
+
+# The core library is always available.
+include("${CMAKE_CURRENT_LIST_DIR}/tinycodec-core-targets.cmake")
+set(tinycodec_core_FOUND TRUE)
+
+# Every other component is one format, installed as its own targets file.
+foreach(component IN LISTS tinycodec_FIND_COMPONENTS)
+    if(component STREQUAL "core")
+        continue()
+    endif()
+    set(targets_file "${CMAKE_CURRENT_LIST_DIR}/tinycodec-${component}-targets.cmake")
+    if(EXISTS "${targets_file}")
+        include("${targets_file}")
+        set(tinycodec_${component}_FOUND TRUE)
+    else()
+        set(tinycodec_${component}_FOUND FALSE)
+    endif()
+endforeach()
+
+# Sets tinycodec_FOUND to FALSE when a required component is missing.
+check_required_components(tinycodec)

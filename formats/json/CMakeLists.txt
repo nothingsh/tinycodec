@@ -37,6 +37,13 @@ target_include_directories(tinycodec_json PUBLIC
 target_link_libraries(tinycodec_json PUBLIC tinycodec::core)
 tinycodec_configure_library(tinycodec_json)
 
+install(TARGETS tinycodec_json EXPORT tinycodec-json-targets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(EXPORT tinycodec-json-targets
+    NAMESPACE tinycodec::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/tinycodec)
+
 if(TINYCODEC_BUILD_TESTS)
     tinycodec_add_test(tinycodec_json_test
         test/test_conformance.cpp

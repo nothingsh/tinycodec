@@ -6,6 +6,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(tinycodec-convert PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
+install(TARGETS tinycodec-convert RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
 if(TINYCODEC_BUILD_TESTS)
     # Each test runs the tool through test/run_convert.cmake, which compares
     # the exit code, standard output and standard error with what is expected.
