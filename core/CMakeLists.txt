@@ -1,6 +1,8 @@
 add_library(tinycodec_core STATIC
     src/arena.cpp
+    src/document.cpp
     src/error.cpp
+    src/value.cpp
 )
 add_library(tinycodec::core ALIAS tinycodec_core)
 set_target_properties(tinycodec_core PROPERTIES EXPORT_NAME core)
@@ -11,8 +13,10 @@ tinycodec_configure_library(tinycodec_core)
 
 if(TINYCODEC_BUILD_TESTS)
     tinycodec_add_test(tinycodec_core_test
+        test/test_accept.cpp
         test/test_arena.cpp
         test/test_error.cpp
+        test/test_value.cpp
     )
     target_link_libraries(tinycodec_core_test PRIVATE tinycodec::core)
 endif()
