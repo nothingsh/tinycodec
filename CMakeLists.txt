@@ -35,3 +35,4 @@ if(TINYCODEC_BUILD_TESTS)
 endif()
 
 add_subdirectory(core)
+add_subdirectory(formats/json)
