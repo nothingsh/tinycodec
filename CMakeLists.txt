@@ -36,3 +36,7 @@ endif()
 
 add_subdirectory(core)
 add_subdirectory(formats/json)
+
+if(TINYCODEC_BUILD_TOOLS)
+    add_subdirectory(tools/convert)
+endif()

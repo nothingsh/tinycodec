@@ -1,0 +1,13 @@
+{
+  "name": "tinycodec",
+  "formats": [
+    "json"
+  ],
+  "stable": false,
+  "limits": {
+    "depth": 500,
+    "ratio": 0.5
+  },
+  "empty": [],
+  "note": "你好\n"
+}
