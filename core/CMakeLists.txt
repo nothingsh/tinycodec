@@ -1,5 +1,6 @@
 add_library(tinycodec_core STATIC
     src/arena.cpp
+    src/builder.cpp
     src/document.cpp
     src/error.cpp
     src/value.cpp
@@ -15,6 +16,7 @@ if(TINYCODEC_BUILD_TESTS)
     tinycodec_add_test(tinycodec_core_test
         test/test_accept.cpp
         test/test_arena.cpp
+        test/test_builder.cpp
         test/test_error.cpp
         test/test_value.cpp
     )
