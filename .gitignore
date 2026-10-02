@@ -1,0 +1,15 @@
+# Build output
+build*/
+cmake-build-*/
+
+# Editors and OS
+.idea/
+.vscode/
+.DS_Store
+
+# Design specs, plans and agent tooling (kept private)
+docs/specs/
+docs/plans/
+.superpowers/
+.claude/
+CLAUDE.md
