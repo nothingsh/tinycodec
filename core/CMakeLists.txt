@@ -3,6 +3,7 @@ add_library(tinycodec_core STATIC
     src/builder.cpp
     src/document.cpp
     src/error.cpp
+    src/sink.cpp
     src/value.cpp
 )
 add_library(tinycodec::core ALIAS tinycodec_core)
@@ -18,6 +19,7 @@ if(TINYCODEC_BUILD_TESTS)
         test/test_arena.cpp
         test/test_builder.cpp
         test/test_error.cpp
+        test/test_sink.cpp
         test/test_value.cpp
     )
     target_link_libraries(tinycodec_core_test PRIVATE tinycodec::core)
