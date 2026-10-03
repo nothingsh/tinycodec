@@ -1,6 +1,7 @@
 add_library(tinycodec_core STATIC
     src/arena.cpp
     src/builder.cpp
+    src/datetime.cpp
     src/document.cpp
     src/error.cpp
     src/sink.cpp
@@ -26,6 +27,7 @@ if(TINYCODEC_BUILD_TESTS)
         test/test_accept.cpp
         test/test_arena.cpp
         test/test_builder.cpp
+        test/test_datetime.cpp
         test/test_error.cpp
         test/test_sink.cpp
         test/test_utf8.cpp
