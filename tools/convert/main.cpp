@@ -1,23 +1,45 @@
-// tinycodec-convert: reads JSON from a file or standard input and writes it
-// to standard output, reformatted.
+// tinycodec-convert: reads JSON or MessagePack from a file or standard input
+// and writes it to standard output, as JSON (reformatted) or MessagePack.
 //
-// Exit codes: 0 success, 1 the input is not valid JSON, 2 bad usage or an
-// input/output failure.
+// Exit codes: 0 success, 1 the input is not valid or cannot be written in
+// the output format, 2 bad usage or an input/output failure.
 
 #include <charconv>
 #include <cstdio>
 #include <cstring>
+#include <memory>
 #include <string>
 #include <system_error>
 
 #include "tinycodec/error.h"
 #include "tinycodec/json/reader.h"
 #include "tinycodec/json/writer.h"
+#include "tinycodec/msgpack/reader.h"
+#include "tinycodec/msgpack/writer.h"
 #include "tinycodec/sink.h"
+#include "tinycodec/visitor.h"
 
 namespace {
 
-const char USAGE[] = "usage: tinycodec-convert [--indent N] [FILE]\n";
+const char USAGE[] = "usage: tinycodec-convert [--from FORMAT] [--to FORMAT] [--indent N] [FILE]\n";
+
+enum class Format { Json, Msgpack };
+
+const char* FormatName(Format format) {
+    return format == Format::Json ? "json" : "msgpack";
+}
+
+bool ParseFormat(const char* text, Format* out) {
+    if (std::strcmp(text, "json") == 0) {
+        *out = Format::Json;
+        return true;
+    }
+    if (std::strcmp(text, "msgpack") == 0) {
+        *out = Format::Msgpack;
+        return true;
+    }
+    return false;
+}
 
 // Reads stream to its end. Returns false on a read error.
 bool ReadAll(FILE* stream, std::string* out) {
@@ -46,18 +68,27 @@ bool ParseIndent(const char* text, int* out) {
 }  // namespace
 
 int main(int argc, char** argv) {
+    Format from = Format::Json;
+    Format to = Format::Json;
     int indent = 2;
     const char* path = nullptr;
     for (int i = 1; i < argc; ++i) {
+        bool ok = true;
         if (std::strcmp(argv[i], "--indent") == 0) {
-            if (i + 1 >= argc || !ParseIndent(argv[i + 1], &indent)) {
-                std::fputs(USAGE, stderr);
-                return 2;
-            }
+            ok = i + 1 < argc && ParseIndent(argv[i + 1], &indent);
+            ++i;
+        } else if (std::strcmp(argv[i], "--from") == 0) {
+            ok = i + 1 < argc && ParseFormat(argv[i + 1], &from);
+            ++i;
+        } else if (std::strcmp(argv[i], "--to") == 0) {
+            ok = i + 1 < argc && ParseFormat(argv[i + 1], &to);
             ++i;
         } else if (path == nullptr) {
             path = argv[i];
         } else {
+            ok = false;
+        }
+        if (!ok) {
             std::fputs(USAGE, stderr);
             return 2;
         }
@@ -82,18 +113,41 @@ int main(int argc, char** argv) {
     // Reader drives Writer directly; no document is built. The output is
     // collected first so that nothing is printed for invalid input.
     tinycodec::StringSink output;
-    tinycodec::json::WriterOptions options;
-    options.indent = indent;
-    tinycodec::json::Writer writer(output, options);
-    tinycodec::json::Reader reader;
-    tinycodec::Error error = reader.Parse(input, writer);
+    std::unique_ptr<tinycodec::Visitor> writer;
+    if (to == Format::Json) {
+        tinycodec::json::WriterOptions options;
+        options.indent = indent;
+        writer = std::make_unique<tinycodec::json::Writer>(output, options);
+    } else {
+        writer = std::make_unique<tinycodec::msgpack::Writer>(output);
+    }
+
+    tinycodec::Error error;
+    if (from == Format::Json) {
+        error = tinycodec::json::Reader().Parse(input, *writer);
+    } else {
+        error = tinycodec::msgpack::Reader().Parse(input, *writer);
+    }
     if (!error.Ok()) {
-        std::fprintf(stderr, "%s:%d:%d: %s\n", name, error.line, error.column, tinycodec::ErrorName(error.code));
+        // Aborted means the writer refused a value that the output format
+        // cannot express.
+        std::string problem = error.code == tinycodec::ErrorCode::Aborted
+            ? std::string("cannot be written as ") + FormatName(to)
+            : tinycodec::ErrorName(error.code);
+        if (from == Format::Json) {
+            std::fprintf(stderr, "%s:%d:%d: %s\n", name, error.line, error.column, problem.c_str());
+        } else {
+            std::fprintf(stderr, "%s: offset %zu: %s\n", name, error.offset, problem.c_str());
+        }
         return 1;
     }
 
     tinycodec::FileSink standardOutput(stdout);
-    if (!standardOutput.Write(output.Str()) || !standardOutput.Write("\n") || std::fflush(stdout) != 0) {
+    bool written = standardOutput.Write(output.Str());
+    if (to == Format::Json) {
+        written = written && standardOutput.Write("\n");
+    }
+    if (!written || std::fflush(stdout) != 0) {
         std::fputs("tinycodec-convert: cannot write the output\n", stderr);
         return 2;
     }
