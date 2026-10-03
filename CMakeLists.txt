@@ -42,6 +42,10 @@ if(TINYCODEC_BUILD_TOOLS)
     add_subdirectory(tools/convert)
 endif()
 
+if(TINYCODEC_BUILD_TESTS)
+    add_subdirectory(tests/cross_format)
+endif()
+
 # Package files, so that an installed tinycodec can be found with
 #   find_package(tinycodec REQUIRED COMPONENTS json)
 include(CMakePackageConfigHelpers)
