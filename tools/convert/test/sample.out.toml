@@ -1,0 +1,9 @@
+name = "tinycodec"
+formats = ["json"]
+stable = false
+empty = []
+note = "你好\n"
+
+[limits]
+depth = 500
+ratio = 0.5

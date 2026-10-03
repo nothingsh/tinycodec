@@ -1,0 +1,8 @@
+# The same data as sample.json, in the same order.
+name = "tinycodec"
+formats = ['json']
+stable = false
+limits.depth = 500
+limits.ratio = 0.5
+empty = [ ]
+note = "你好\n"
