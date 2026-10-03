@@ -1,4 +1,6 @@
 add_library(tinycodec_msgpack STATIC
+    src/msgpack.cpp
+    src/reader.cpp
     src/writer.cpp
 )
 add_library(tinycodec::msgpack ALIAS tinycodec_msgpack)
@@ -18,6 +20,8 @@ install(EXPORT tinycodec-msgpack-targets
 
 if(TINYCODEC_BUILD_TESTS)
     tinycodec_add_test(tinycodec_msgpack_test
+        test/test_msgpack.cpp
+        test/test_reader.cpp
         test/test_writer.cpp
     )
     target_link_libraries(tinycodec_msgpack_test PRIVATE tinycodec::msgpack)
