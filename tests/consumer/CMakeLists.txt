@@ -9,7 +9,7 @@ if(tinycodec_FOUND)
     message(FATAL_ERROR "find_package succeeded for a component that does not exist")
 endif()
 
-find_package(tinycodec 0.1 REQUIRED COMPONENTS json msgpack)
+find_package(tinycodec 0.1 REQUIRED COMPONENTS json msgpack toml)
 
 add_executable(consumer main.cpp)
-target_link_libraries(consumer PRIVATE tinycodec::json tinycodec::msgpack)
+target_link_libraries(consumer PRIVATE tinycodec::json tinycodec::msgpack tinycodec::toml)

@@ -1,5 +1,5 @@
 add_executable(tinycodec-convert main.cpp)
-target_link_libraries(tinycodec-convert PRIVATE tinycodec::json tinycodec::msgpack)
+target_link_libraries(tinycodec-convert PRIVATE tinycodec::json tinycodec::msgpack tinycodec::toml)
 target_compile_features(tinycodec-convert PRIVATE cxx_std_17)
 set_target_properties(tinycodec-convert PROPERTIES CXX_EXTENSIONS OFF)
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
@@ -134,4 +134,64 @@ if(TINYCODEC_BUILD_TESTS)
         ARGS sample.json --to
         EXIT_CODE 2
         STDERR_TEXT "usage: tinycodec-convert [--from FORMAT] [--to FORMAT] [--indent N] [FILE]\n")
+
+    # TOML.
+    tinycodec_add_convert_test(tinycodec_convert_toml_to_json
+        ARGS --from toml sample.toml
+        EXIT_CODE 0
+        STDOUT_FILE sample.indent2.json)
+    tinycodec_add_convert_test(tinycodec_convert_toml_stdin
+        ARGS --from toml --indent 0
+        STDIN_FILE sample.toml
+        EXIT_CODE 0
+        STDOUT_FILE sample.compact.json)
+    tinycodec_add_convert_test(tinycodec_convert_json_to_toml
+        ARGS --to toml sample.json
+        EXIT_CODE 0
+        STDOUT_FILE sample.out.toml)
+    tinycodec_add_convert_test(tinycodec_convert_json_to_toml_ignores_indent
+        ARGS --indent 4 --to toml sample.json
+        EXIT_CODE 0
+        STDOUT_FILE sample.out.toml)
+    tinycodec_add_convert_test(tinycodec_convert_toml_to_toml
+        ARGS --from toml --to toml sample.toml
+        EXIT_CODE 0
+        STDOUT_FILE sample.out.toml)
+    tinycodec_add_convert_test(tinycodec_convert_toml_to_msgpack
+        ARGS --from toml --to msgpack sample.toml
+        EXIT_CODE 0
+        STDOUT_FILE sample.msgpack)
+    tinycodec_add_convert_test(tinycodec_convert_msgpack_to_toml
+        ARGS --from msgpack --to toml sample.msgpack
+        EXIT_CODE 0
+        STDOUT_FILE sample.out.toml)
+    tinycodec_add_convert_test(tinycodec_convert_toml_parse_error
+        ARGS --from toml invalid.toml
+        EXIT_CODE 1
+        STDERR_TEXT "invalid.toml:2:13: UnexpectedChar\n")
+    tinycodec_add_convert_test(tinycodec_convert_toml_stdin_parse_error
+        ARGS --from toml --to toml
+        STDIN_FILE invalid.toml
+        EXIT_CODE 1
+        STDERR_TEXT "<stdin>:2:13: UnexpectedChar\n")
+    tinycodec_add_convert_test(tinycodec_convert_null_to_toml
+        ARGS --to toml null.json
+        EXIT_CODE 1
+        STDERR_TEXT "null.json:1:7: cannot be written as toml\n")
+    tinycodec_add_convert_test(tinycodec_convert_array_to_toml
+        ARGS --to toml array.json
+        EXIT_CODE 1
+        STDERR_TEXT "array.json:1:1: cannot be written as toml\n")
+    tinycodec_add_convert_test(tinycodec_convert_datetime_to_json
+        ARGS --from toml datetime.toml
+        EXIT_CODE 1
+        STDERR_TEXT "datetime.toml:2:8: cannot be written as json\n")
+    tinycodec_add_convert_test(tinycodec_convert_datetime_to_msgpack
+        ARGS --from toml --to msgpack datetime.toml
+        EXIT_CODE 1
+        STDERR_TEXT "datetime.toml:2:8: cannot be written as msgpack\n")
+    tinycodec_add_convert_test(tinycodec_convert_bytes_to_toml
+        ARGS --from msgpack --to toml bytes.msgpack
+        EXIT_CODE 1
+        STDERR_TEXT "bytes.msgpack: offset 6: cannot be written as toml\n")
 endif()

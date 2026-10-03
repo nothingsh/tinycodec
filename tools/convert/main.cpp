@@ -1,5 +1,6 @@
-// tinycodec-convert: reads JSON or MessagePack from a file or standard input
-// and writes it to standard output, as JSON (reformatted) or MessagePack.
+// tinycodec-convert: reads JSON, MessagePack or TOML from a file or standard
+// input and writes it to standard output, as JSON (reformatted), MessagePack
+// or TOML.
 //
 // Exit codes: 0 success, 1 the input is not valid or cannot be written in
 // the output format, 2 bad usage or an input/output failure.
@@ -17,16 +18,23 @@
 #include "tinycodec/msgpack/reader.h"
 #include "tinycodec/msgpack/writer.h"
 #include "tinycodec/sink.h"
+#include "tinycodec/toml/reader.h"
+#include "tinycodec/toml/writer.h"
 #include "tinycodec/visitor.h"
 
 namespace {
 
 const char USAGE[] = "usage: tinycodec-convert [--from FORMAT] [--to FORMAT] [--indent N] [FILE]\n";
 
-enum class Format { Json, Msgpack };
+enum class Format { Json, Msgpack, Toml };
 
 const char* FormatName(Format format) {
-    return format == Format::Json ? "json" : "msgpack";
+    switch (format) {
+    case Format::Json:    return "json";
+    case Format::Msgpack: return "msgpack";
+    case Format::Toml:    return "toml";
+    }
+    return "";
 }
 
 bool ParseFormat(const char* text, Format* out) {
@@ -36,6 +44,10 @@ bool ParseFormat(const char* text, Format* out) {
     }
     if (std::strcmp(text, "msgpack") == 0) {
         *out = Format::Msgpack;
+        return true;
+    }
+    if (std::strcmp(text, "toml") == 0) {
+        *out = Format::Toml;
         return true;
     }
     return false;
@@ -118,15 +130,19 @@ int main(int argc, char** argv) {
         tinycodec::json::WriterOptions options;
         options.indent = indent;
         writer = std::make_unique<tinycodec::json::Writer>(output, options);
-    } else {
+    } else if (to == Format::Msgpack) {
         writer = std::make_unique<tinycodec::msgpack::Writer>(output);
+    } else {
+        writer = std::make_unique<tinycodec::toml::Writer>(output);
     }
 
     tinycodec::Error error;
     if (from == Format::Json) {
         error = tinycodec::json::Reader().Parse(input, *writer);
-    } else {
+    } else if (from == Format::Msgpack) {
         error = tinycodec::msgpack::Reader().Parse(input, *writer);
+    } else {
+        error = tinycodec::toml::Reader().Parse(input, *writer);
     }
     if (!error.Ok()) {
         // Aborted means the writer refused a value that the output format
@@ -134,7 +150,7 @@ int main(int argc, char** argv) {
         std::string problem = error.code == tinycodec::ErrorCode::Aborted
             ? std::string("cannot be written as ") + FormatName(to)
             : tinycodec::ErrorName(error.code);
-        if (from == Format::Json) {
+        if (from != Format::Msgpack) {
             std::fprintf(stderr, "%s:%d:%d: %s\n", name, error.line, error.column, problem.c_str());
         } else {
             std::fprintf(stderr, "%s: offset %zu: %s\n", name, error.offset, problem.c_str());
@@ -142,6 +158,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    // TOML output already ends each line; MessagePack output is binary.
     tinycodec::FileSink standardOutput(stdout);
     bool written = standardOutput.Write(output.Str());
     if (to == Format::Json) {

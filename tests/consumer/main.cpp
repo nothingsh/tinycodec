@@ -3,6 +3,7 @@
 
 #include "tinycodec/json/json.h"
 #include "tinycodec/msgpack/msgpack.h"
+#include "tinycodec/toml/toml.h"
 
 int main() {
     tinycodec::Document document;
@@ -28,6 +29,17 @@ int main() {
     error = tinycodec::msgpack::Parse(encoded, decoded);
     if (!error.Ok() || !decoded.Root()->Equals(*document.Root())) {
         std::fprintf(stderr, "MessagePack round trip failed\n");
+        return 1;
+    }
+
+    std::string toml;
+    if (!tinycodec::toml::Stringify(*document.Root(), &toml) || toml != "answer = [42]\n") {
+        std::fprintf(stderr, "unexpected TOML output: %s\n", toml.c_str());
+        return 1;
+    }
+    error = tinycodec::toml::Parse(toml, decoded);
+    if (!error.Ok() || !decoded.Root()->Equals(*document.Root())) {
+        std::fprintf(stderr, "TOML round trip failed\n");
         return 1;
     }
     return 0;
