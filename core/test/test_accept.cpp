@@ -5,6 +5,7 @@
 #include <string_view>
 #include <vector>
 
+#include "datetimes.h"
 #include "recording_visitor.h"
 #include "tinycodec/document.h"
 #include "tinycodec/value.h"
@@ -60,7 +61,7 @@ TEST_CASE("Accept replays Bytes as a Bytes event") {
     CHECK(visitor.events == Events{"Bytes(00ff)", "Bytes()"});
 }
 
-TEST_CASE("a Visitor that does not override Bytes rejects it") {
+TEST_CASE("a Visitor that does not override Bytes or DateTime rejects them") {
     // Implements only the pure virtual events, each of which accepts.
     class BasicVisitor : public Visitor {
     public:
@@ -79,12 +80,32 @@ TEST_CASE("a Visitor that does not override Bytes rejects it") {
 
     BasicVisitor visitor;
     CHECK_FALSE(visitor.Bytes("x"));
+    CHECK_FALSE(visitor.DateTime(MakeDate(2023, 1, 1)));
 
     Document document;
     Value* list = document.NewArray();
     list->Append(document.NewInt(1));
     list->Append(document.NewBytes("x"));
     CHECK_FALSE(list->Accept(visitor));
+
+    Value* dates = document.NewArray();
+    dates->Append(document.NewInt(1));
+    dates->Append(document.NewDateTime(MakeDate(2023, 1, 1)));
+    CHECK_FALSE(dates->Accept(visitor));
+}
+
+TEST_CASE("Accept replays a DateTime as a DateTime event") {
+    Document document;
+    RecordingVisitor visitor;
+    CHECK(document.NewDateTime(MakeOffsetDateTime(1979, 5, 27, 0, 32, 0, 999000000, -420))->Accept(visitor));
+    CHECK(document.NewDateTime(MakeDate(1979, 5, 27))->Accept(visitor));
+    CHECK(document.NewDateTime(MakeTime(7, 32, 0))->Accept(visitor));
+    CHECK(document.NewDateTime(MakeLocalDateTime(1979, 5, 27, 7, 32, 0, 500000000))->Accept(visitor));
+    CHECK(visitor.events == Events{
+        "DateTime(1979-05-27T00:32:00.999-07:00)",
+        "DateTime(1979-05-27)",
+        "DateTime(07:32:00)",
+        "DateTime(1979-05-27T07:32:00.5)"});
 }
 
 TEST_CASE("Accept replays containers in document order") {

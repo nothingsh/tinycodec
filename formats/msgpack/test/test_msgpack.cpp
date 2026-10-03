@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <string>
 
+#include "datetimes.h"
 #include "hex.h"
 #include "tinycodec/builder.h"
 #include "tinycodec/msgpack/msgpack.h"
@@ -130,4 +131,14 @@ TEST_CASE("re-encoding gives the shortest form") {
     CHECK(ToHex(msgpack::Encode(*document.Root())) == "93" "00" "01" "a26162");
     REQUIRE(msgpack::Parse(FromHex("ca3fc00000"), document).Ok());
     CHECK(ToHex(msgpack::Encode(*document.Root())) == "cb3ff8000000000000");
+}
+
+TEST_CASE("Encode returns an empty string for a tree with a DateTime") {
+    Document document;
+    CHECK(msgpack::Encode(*document.NewDateTime(MakeDate(2023, 1, 1))).empty());
+
+    Value* object = document.NewObject();
+    object->Set("a", document.NewInt(1));
+    object->Set("b", document.NewDateTime(MakeTime(1, 2, 3)));
+    CHECK(msgpack::Encode(*object).empty());
 }

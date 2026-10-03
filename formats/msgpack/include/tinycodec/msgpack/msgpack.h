@@ -19,7 +19,8 @@ Error Parse(std::string_view data, Document& document);
 
 // Returns value as MessagePack, in the shortest encoding. Returns an empty
 // string, which is never valid MessagePack, when a string, byte string or
-// container is longer than the format allows.
+// container is longer than the format allows, or when the tree contains a
+// DateTime.
 std::string Encode(const Value& value);
 
 }  // namespace msgpack

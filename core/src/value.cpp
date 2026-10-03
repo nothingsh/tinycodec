@@ -77,6 +77,14 @@ bool Value::QueryBytes(std::string_view* out) const {
     return true;
 }
 
+bool Value::QueryDateTime(DateTime* out) const {
+    if (_type != Type::DateTime) {
+        return false;
+    }
+    *out = _dateTime;
+    return true;
+}
+
 size_t Value::Size() const {
     return IsContainer() ? _container.count : 0;
 }
@@ -223,6 +231,8 @@ bool Value::Accept(Visitor& visitor) const {
         return visitor.String(std::string_view(_string.data, _string.size));
     case Type::Bytes:
         return visitor.Bytes(std::string_view(_string.data, _string.size));
+    case Type::DateTime:
+        return visitor.DateTime(_dateTime);
     case Type::Array:
         if (!visitor.EnterArray()) {
             return false;
@@ -271,6 +281,8 @@ bool Value::Equals(const Value& other) const {
     case Type::Bytes:
         return std::string_view(_string.data, _string.size)
             == std::string_view(other._string.data, other._string.size);
+    case Type::DateTime:
+        return _dateTime == other._dateTime;
     case Type::Array:
     case Type::Object: {
         if (_container.count != other._container.count) {

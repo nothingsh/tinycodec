@@ -36,6 +36,7 @@ public:
     bool EnterArray() override;
     bool ExitArray() override;
     bool Bytes(std::string_view value) override;
+    bool DateTime(const tinycodec::DateTime& value) override;
 
 private:
     bool Add(Value* value);
