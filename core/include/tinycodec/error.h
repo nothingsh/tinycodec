@@ -11,8 +11,10 @@ enum class ErrorCode {
     UnexpectedChar,  // A character or byte that is not allowed here, including content after the root.
     InvalidNumber,   // Malformed number, or a number that overflows to infinity.
     InvalidEscape,   // Malformed escape sequence, including unpaired surrogates.
-    InvalidUtf8,     // Malformed UTF-8 byte sequence inside a string.
+    InvalidUtf8,     // Malformed UTF-8 byte sequence inside a string, or anywhere in TOML text.
     DepthExceeded,   // Containers nested deeper than the limit.
+    DuplicateKey,    // A key or table defined more than once, or extended where the format forbids it.
+    InvalidDateTime, // A date or time written correctly whose fields are out of range, e.g. February 30.
     Unsupported,     // Valid in the format, but the data model cannot represent it.
     Aborted,         // A Visitor returned false.
 };

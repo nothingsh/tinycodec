@@ -29,6 +29,8 @@ TEST_CASE("ErrorName returns the enumerator name") {
     CHECK(std::string(ErrorName(ErrorCode::InvalidEscape)) == "InvalidEscape");
     CHECK(std::string(ErrorName(ErrorCode::InvalidUtf8)) == "InvalidUtf8");
     CHECK(std::string(ErrorName(ErrorCode::DepthExceeded)) == "DepthExceeded");
+    CHECK(std::string(ErrorName(ErrorCode::DuplicateKey)) == "DuplicateKey");
+    CHECK(std::string(ErrorName(ErrorCode::InvalidDateTime)) == "InvalidDateTime");
     CHECK(std::string(ErrorName(ErrorCode::Unsupported)) == "Unsupported");
     CHECK(std::string(ErrorName(ErrorCode::Aborted)) == "Aborted");
 }
