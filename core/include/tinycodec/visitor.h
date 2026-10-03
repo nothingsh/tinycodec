@@ -18,6 +18,12 @@ namespace tinycodec {
 //    and inside an object every value is preceded by exactly one Key.
 //  - Producers send Int for every integer that fits in int64_t, and Uint
 //    only for integers above INT64_MAX.
+//
+// Events that are not pure virtual are extension events. Their default
+// implementation returns false, so a consumer that does not know one aborts
+// instead of silently dropping data. Producers send an extension event only
+// for what the basic events cannot express, and every rule above applies
+// to extension events too.
 class Visitor {
 public:
     virtual ~Visitor() = default;
@@ -35,6 +41,11 @@ public:
 
     virtual bool EnterArray() = 0;
     virtual bool ExitArray() = 0;
+
+    // Extension event: a value made of arbitrary bytes, such as a
+    // MessagePack bin. It may appear wherever String may. Text that String
+    // can carry is never sent as Bytes.
+    virtual bool Bytes(std::string_view /*value*/) { return false; }
 };
 
 }  // namespace tinycodec

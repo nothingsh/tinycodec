@@ -10,7 +10,7 @@ namespace tinycodec {
 class Document;
 class Visitor;
 
-enum class Type { Null, Bool, Int, Uint, Double, String, Array, Object };
+enum class Type { Null, Bool, Int, Uint, Double, String, Bytes, Array, Object };
 
 // One node of a document tree. Values are created by a Document, which owns
 // them; they are never copied or deleted individually.
@@ -24,7 +24,8 @@ public:
     bool QueryInt(int64_t* out) const;        // Int, or Uint up to INT64_MAX.
     bool QueryUint(uint64_t* out) const;      // Uint, or non-negative Int.
     bool QueryDouble(double* out) const;      // Double, Int or Uint.
-    bool QueryString(std::string_view* out) const;
+    bool QueryString(std::string_view* out) const;   // String only, never Bytes.
+    bool QueryBytes(std::string_view* out) const;    // Bytes only, never String.
 
     // Container access. These return null when the type does not match or
     // nothing is found.
@@ -50,7 +51,8 @@ public:
     bool Accept(Visitor& visitor) const;
 
     // Deep comparison. Int and Uint compare by numeric value; a Double only
-    // equals a Double; object members must match in order.
+    // equals a Double; Bytes only equal Bytes, never a String with the same
+    // content; object members must match in order.
     bool Equals(const Value& other) const;
 
 private:
@@ -87,7 +89,7 @@ private:
         int64_t _int;
         uint64_t _uint;
         double _double;
-        StringData _string;
+        StringData _string;   // String and Bytes.
         ContainerData _container = {nullptr, nullptr, 0};
     };
 };

@@ -6,11 +6,13 @@
 #include <string_view>
 #include <vector>
 
+#include "hex.h"
 #include "tinycodec/visitor.h"
 
 // Test helper: writes every event it receives into `events` as text, e.g.
-// "Int(1)" or "Key(name)". Set `failAt` to make the event with that index
-// (counting from 0) return false; that event is still recorded.
+// "Int(1)", "Key(name)" or "Bytes(00ff)" (Bytes are shown in hex). Set
+// `failAt` to make the event with that index (counting from 0) return
+// false; that event is still recorded.
 class RecordingVisitor : public tinycodec::Visitor {
 public:
     std::vector<std::string> events;
@@ -27,6 +29,7 @@ public:
     bool ExitObject() override { return Record("ExitObject"); }
     bool EnterArray() override { return Record("EnterArray"); }
     bool ExitArray() override { return Record("ExitArray"); }
+    bool Bytes(std::string_view value) override { return Record("Bytes(" + ToHex(value) + ")"); }
 
 private:
     bool Record(std::string event) {

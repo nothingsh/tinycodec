@@ -35,6 +35,7 @@ public:
     Value* NewUint(uint64_t value);
     Value* NewDouble(double value);
     Value* NewString(std::string_view value);     // The text is copied.
+    Value* NewBytes(std::string_view value);      // The bytes are copied.
     Value* NewArray();
     Value* NewObject();
 

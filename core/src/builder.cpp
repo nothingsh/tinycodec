@@ -103,4 +103,8 @@ bool DocumentBuilder::ExitArray() {
     return Exit(false);
 }
 
+bool DocumentBuilder::Bytes(std::string_view value) {
+    return Add(_document.NewBytes(value)) && Finish();
+}
+
 }  // namespace tinycodec

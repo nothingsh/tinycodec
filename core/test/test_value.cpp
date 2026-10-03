@@ -17,6 +17,7 @@ TEST_CASE("each New function creates a value of the matching type") {
     CHECK(document.NewUint(1)->GetType() == Type::Uint);
     CHECK(document.NewDouble(1.5)->GetType() == Type::Double);
     CHECK(document.NewString("x")->GetType() == Type::String);
+    CHECK(document.NewBytes("x")->GetType() == Type::Bytes);
     CHECK(document.NewArray()->GetType() == Type::Array);
     CHECK(document.NewObject()->GetType() == Type::Object);
 }
@@ -390,4 +391,56 @@ TEST_CASE("Equals compares containers deeply and in order") {
     ba->Set("b", document.NewInt(2));
     ba->Set("a", document.NewInt(1));
     CHECK_FALSE(ab->Equals(*ba));
+}
+
+TEST_CASE("QueryBytes reads Bytes, including empty content and NUL bytes") {
+    Document document;
+    std::string_view out = "unchanged";
+
+    std::string binary("\x00\xFF\x80" "a", 4);
+    CHECK(document.NewBytes(binary)->QueryBytes(&out));
+    CHECK(out.size() == 4);
+    CHECK(out == std::string_view(binary));
+
+    CHECK(document.NewBytes("")->QueryBytes(&out));
+    CHECK(out.empty());
+
+    out = "unchanged";
+    CHECK_FALSE(document.NewInt(1)->QueryBytes(&out));
+    CHECK(out == "unchanged");
+}
+
+TEST_CASE("String and Bytes do not convert into each other") {
+    Document document;
+    std::string_view out = "unchanged";
+    CHECK_FALSE(document.NewBytes("x")->QueryString(&out));
+    CHECK(out == "unchanged");
+    CHECK_FALSE(document.NewString("x")->QueryBytes(&out));
+    CHECK(out == "unchanged");
+}
+
+TEST_CASE("NewBytes copies its argument, also when longer than an arena block") {
+    Document document;
+    std::string source = "original";
+    Value* small = document.NewBytes(source);
+    source = "XXXXXXXX";
+
+    std::string big(10000, '\xAB');
+    Value* large = document.NewBytes(big);
+
+    std::string_view out;
+    CHECK(small->QueryBytes(&out));
+    CHECK(out == "original");
+    CHECK(large->QueryBytes(&out));
+    CHECK(out == std::string_view(big));
+}
+
+TEST_CASE("Equals compares Bytes byte by byte and keeps them apart from String") {
+    Document document;
+    CHECK(document.NewBytes("ab")->Equals(*document.NewBytes("ab")));
+    CHECK(document.NewBytes("")->Equals(*document.NewBytes("")));
+    CHECK_FALSE(document.NewBytes("ab")->Equals(*document.NewBytes("ac")));
+    CHECK_FALSE(document.NewBytes("ab")->Equals(*document.NewBytes("abc")));
+    CHECK_FALSE(document.NewBytes("ab")->Equals(*document.NewString("ab")));
+    CHECK_FALSE(document.NewString("ab")->Equals(*document.NewBytes("ab")));
 }

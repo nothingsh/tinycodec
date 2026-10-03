@@ -203,6 +203,18 @@ TEST_CASE("NaN and infinity are rejected and nothing is written") {
     CHECK(sink.Str() == "[1");
 }
 
+TEST_CASE("Bytes are rejected and nothing is written") {
+    StringSink sink;
+    json::Writer writer(sink);
+    CHECK_FALSE(writer.Bytes("x"));
+    CHECK(sink.Str().empty());
+
+    CHECK(writer.EnterArray());
+    CHECK(writer.Int(1));
+    CHECK_FALSE(writer.Bytes(""));
+    CHECK(sink.Str() == "[1");
+}
+
 TEST_CASE("events after the root is complete are rejected") {
     SUBCASE("after a scalar root") {
         StringSink sink;

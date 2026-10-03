@@ -72,6 +72,13 @@ Value* Document::NewString(std::string_view value) {
     return result;
 }
 
+Value* Document::NewBytes(std::string_view value) {
+    Value* result = NewValue(Type::Bytes);
+    result->_string.data = CopyString(value);
+    result->_string.size = value.size();
+    return result;
+}
+
 Value* Document::NewArray() {
     Value* result = NewValue(Type::Array);
     result->_container = {nullptr, nullptr, 0};

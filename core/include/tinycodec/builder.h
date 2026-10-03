@@ -35,6 +35,7 @@ public:
     bool ExitObject() override;
     bool EnterArray() override;
     bool ExitArray() override;
+    bool Bytes(std::string_view value) override;
 
 private:
     bool Add(Value* value);

@@ -128,6 +128,16 @@ TEST_CASE("Stringify returns an empty string for NaN and infinity") {
     CHECK(json::Stringify(*list).empty());
 }
 
+TEST_CASE("Stringify returns an empty string for a tree with Bytes") {
+    Document document;
+    CHECK(json::Stringify(*document.NewBytes("x")).empty());
+
+    Value* object = document.NewObject();
+    object->Set("a", document.NewInt(1));
+    object->Set("b", document.NewBytes(""));
+    CHECK(json::Stringify(*object).empty());
+}
+
 TEST_CASE("numbers keep their type and value through Stringify and Parse") {
     const char* texts[] = {
         "0", "-1", "9223372036854775807", "-9223372036854775808",

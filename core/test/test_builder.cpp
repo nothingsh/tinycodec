@@ -224,3 +224,40 @@ TEST_CASE("a build that is never finished leaves the document as it was") {
     CHECK_FALSE(second.ExitObject());     // The producer gave up with an error.
     CHECK(filled.Root() == previous);
 }
+
+TEST_CASE("a Bytes event creates a Bytes value at the root, in an array and in an object") {
+    std::string binary("\x00\xFF", 2);
+
+    Document atRoot;
+    DocumentBuilder rootBuilder(atRoot);
+    CHECK(rootBuilder.Bytes(binary));
+    REQUIRE(atRoot.Root() != nullptr);
+    std::string_view out;
+    CHECK(atRoot.Root()->QueryBytes(&out));
+    CHECK(out == std::string_view(binary));
+
+    Document nested;
+    DocumentBuilder builder(nested);
+    CHECK(builder.EnterObject());
+    CHECK(builder.Key("list"));
+    CHECK(builder.EnterArray());
+    CHECK(builder.Bytes(""));
+    CHECK(builder.ExitArray());
+    CHECK(builder.Key("data"));
+    CHECK(builder.Bytes(binary));
+    CHECK(builder.ExitObject());
+
+    const Value* root = nested.Root();
+    REQUIRE(root != nullptr);
+    REQUIRE(root->Find("list") != nullptr);
+    CHECK(root->Find("list")->At(0)->GetType() == Type::Bytes);
+    CHECK(root->Find("data")->QueryBytes(&out));
+    CHECK(out == std::string_view(binary));
+}
+
+TEST_CASE("a Bytes event inside an object needs a Key") {
+    Document document;
+    DocumentBuilder builder(document);
+    CHECK(builder.EnterObject());
+    CHECK_FALSE(builder.Bytes("x"));
+}

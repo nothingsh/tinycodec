@@ -18,7 +18,7 @@ namespace json {
 Error Parse(std::string_view text, Document& document);
 
 // Returns value as JSON text. Returns an empty string, which is never valid
-// JSON, when the tree contains a NaN or an infinite Double.
+// JSON, when the tree contains a NaN or an infinite Double, or Bytes.
 std::string Stringify(const Value& value, WriterOptions options = {});
 
 }  // namespace json
