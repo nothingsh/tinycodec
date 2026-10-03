@@ -36,6 +36,7 @@ public:
     Value* NewDouble(double value);
     Value* NewString(std::string_view value);     // The text is copied.
     Value* NewBytes(std::string_view value);      // The bytes are copied.
+    Value* NewDateTime(const DateTime& value);    // Stored as given; IsValid() is not checked.
     Value* NewArray();
     Value* NewObject();
 

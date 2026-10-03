@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <string_view>
 
+#include "tinycodec/datetime.h"
+
 namespace tinycodec {
 
 // Receives a value as a sequence of events. Readers and Value::Accept
@@ -18,6 +20,7 @@ namespace tinycodec {
 //    and inside an object every value is preceded by exactly one Key.
 //  - Producers send Int for every integer that fits in int64_t, and Uint
 //    only for integers above INT64_MAX.
+//  - Producers send only DateTime values whose IsValid() is true.
 //
 // Events that are not pure virtual are extension events. Their default
 // implementation returns false, so a consumer that does not know one aborts
@@ -46,6 +49,12 @@ public:
     // MessagePack bin. It may appear wherever String may. Text that String
     // can carry is never sent as Bytes.
     virtual bool Bytes(std::string_view /*value*/) { return false; }
+
+    // Extension event: a date, a time, or both, such as a TOML datetime.
+    // It may appear wherever String may. Inside Visitor and the classes
+    // derived from it, the name DateTime means this function, so the type
+    // has to be written as tinycodec::DateTime.
+    virtual bool DateTime(const tinycodec::DateTime& /*value*/) { return false; }
 };
 
 }  // namespace tinycodec

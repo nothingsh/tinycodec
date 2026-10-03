@@ -24,7 +24,7 @@ struct WriterOptions {
 // An event returns false, writing nothing more, when the sink fails, when a
 // Double is NaN or infinite, when the event does not fit the sequence so
 // far, or when the root value is already complete. JSON has no way to
-// write Bytes, so that event always returns false.
+// write Bytes or a DateTime, so those events always return false.
 class Writer : public Visitor {
 public:
     explicit Writer(Sink& sink, WriterOptions options = {});

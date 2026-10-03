@@ -25,7 +25,8 @@ namespace msgpack {
 // An event returns false when it does not fit the sequence so far, when
 // the root value is already complete, when a string, byte string or
 // container is longer than the format allows (4294967295), or, for the
-// event that completes the root, when the sink fails.
+// event that completes the root, when the sink fails. A DateTime is not
+// written as a timestamp ext; that event always returns false.
 class Writer : public Visitor {
 public:
     explicit Writer(Sink& sink);

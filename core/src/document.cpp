@@ -79,6 +79,12 @@ Value* Document::NewBytes(std::string_view value) {
     return result;
 }
 
+Value* Document::NewDateTime(const DateTime& value) {
+    Value* result = NewValue(Type::DateTime);
+    result->_dateTime = value;
+    return result;
+}
+
 Value* Document::NewArray() {
     Value* result = NewValue(Type::Array);
     result->_container = {nullptr, nullptr, 0};

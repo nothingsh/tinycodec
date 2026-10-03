@@ -7,6 +7,7 @@
 #include <string>
 #include <string_view>
 
+#include "datetimes.h"
 #include "hex.h"
 #include "tinycodec/document.h"
 #include "tinycodec/msgpack/writer.h"
@@ -359,4 +360,17 @@ TEST_CASE("500 levels of nesting are written correctly") {
     std::string expected(499, static_cast<char>(0x91));
     expected += static_cast<char>(0x90);
     CHECK(sink.Str() == expected);
+}
+
+TEST_CASE("a DateTime is rejected and nothing reaches the sink") {
+    RecordingSink sink;
+    msgpack::Writer writer(sink);
+    CHECK_FALSE(writer.DateTime(MakeDate(2023, 1, 1)));
+
+    CHECK(writer.EnterArray());
+    CHECK(writer.Int(1));
+    CHECK_FALSE(writer.DateTime(MakeTime(1, 2, 3)));
+    CHECK(writer.ExitArray());
+    CHECK(sink.calls == 1);
+    CHECK(ToHex(sink.data) == "9101");
 }

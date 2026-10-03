@@ -5,6 +5,7 @@
 #include <string_view>
 #include <vector>
 
+#include "datetimes.h"
 #include "recording_visitor.h"
 #include "tinycodec/builder.h"
 #include "tinycodec/document.h"
@@ -260,4 +261,43 @@ TEST_CASE("a Bytes event inside an object needs a Key") {
     DocumentBuilder builder(document);
     CHECK(builder.EnterObject());
     CHECK_FALSE(builder.Bytes("x"));
+}
+
+TEST_CASE("a DateTime event creates a DateTime value at the root, in an array and in an object") {
+    DateTime date = MakeDate(1979, 5, 27);
+    DateTime time = MakeTime(7, 32, 0, 999000000);
+
+    Document atRoot;
+    DocumentBuilder rootBuilder(atRoot);
+    CHECK(rootBuilder.DateTime(date));
+    REQUIRE(atRoot.Root() != nullptr);
+    DateTime out;
+    CHECK(atRoot.Root()->QueryDateTime(&out));
+    CHECK(out == date);
+
+    Document nested;
+    DocumentBuilder builder(nested);
+    CHECK(builder.EnterObject());
+    CHECK(builder.Key("list"));
+    CHECK(builder.EnterArray());
+    CHECK(builder.DateTime(date));
+    CHECK(builder.ExitArray());
+    CHECK(builder.Key("at"));
+    CHECK(builder.DateTime(time));
+    CHECK(builder.ExitObject());
+
+    const Value* root = nested.Root();
+    REQUIRE(root != nullptr);
+    REQUIRE(root->Find("list") != nullptr);
+    CHECK(root->Find("list")->At(0)->QueryDateTime(&out));
+    CHECK(out == date);
+    CHECK(root->Find("at")->QueryDateTime(&out));
+    CHECK(out == time);
+}
+
+TEST_CASE("a DateTime event inside an object needs a Key") {
+    Document document;
+    DocumentBuilder builder(document);
+    CHECK(builder.EnterObject());
+    CHECK_FALSE(builder.DateTime(MakeDate(2023, 1, 1)));
 }

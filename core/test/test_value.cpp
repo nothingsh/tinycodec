@@ -4,6 +4,7 @@
 #include <string>
 #include <string_view>
 
+#include "datetimes.h"
 #include "tinycodec/document.h"
 #include "tinycodec/value.h"
 
@@ -18,6 +19,7 @@ TEST_CASE("each New function creates a value of the matching type") {
     CHECK(document.NewDouble(1.5)->GetType() == Type::Double);
     CHECK(document.NewString("x")->GetType() == Type::String);
     CHECK(document.NewBytes("x")->GetType() == Type::Bytes);
+    CHECK(document.NewDateTime(MakeDate(2023, 1, 1))->GetType() == Type::DateTime);
     CHECK(document.NewArray()->GetType() == Type::Array);
     CHECK(document.NewObject()->GetType() == Type::Object);
 }
@@ -443,4 +445,48 @@ TEST_CASE("Equals compares Bytes byte by byte and keeps them apart from String")
     CHECK_FALSE(document.NewBytes("ab")->Equals(*document.NewBytes("abc")));
     CHECK_FALSE(document.NewBytes("ab")->Equals(*document.NewString("ab")));
     CHECK_FALSE(document.NewString("ab")->Equals(*document.NewBytes("ab")));
+}
+
+TEST_CASE("QueryDateTime reads a DateTime and rejects everything else") {
+    Document document;
+    DateTime out = MakeDate(2000, 1, 1);
+
+    DateTime value = MakeOffsetDateTime(1979, 5, 27, 0, 32, 0, 999000000, -420);
+    CHECK(document.NewDateTime(value)->QueryDateTime(&out));
+    CHECK(out == value);
+
+    CHECK_FALSE(document.NewString("1979-05-27")->QueryDateTime(&out));
+    CHECK(out == value);  // Untouched on failure.
+    CHECK_FALSE(document.NewInt(0)->QueryDateTime(&out));
+}
+
+TEST_CASE("other Query functions reject a DateTime") {
+    Document document;
+    Value* value = document.NewDateTime(MakeTime(1, 2, 3));
+    std::string_view text = "unchanged";
+    CHECK_FALSE(value->QueryString(&text));
+    CHECK(text == "unchanged");
+    double number = 0.0;
+    CHECK_FALSE(value->QueryDouble(&number));
+    int64_t integer = 0;
+    CHECK_FALSE(value->QueryInt(&integer));
+}
+
+TEST_CASE("NewDateTime stores the value as given, without checking it") {
+    Document document;
+    DateTime invalid = MakeDate(2023, 2, 30);
+    DateTime out;
+    CHECK(document.NewDateTime(invalid)->QueryDateTime(&out));
+    CHECK(out == invalid);
+}
+
+TEST_CASE("Equals compares DateTimes field by field and keeps them apart from String") {
+    Document document;
+    DateTime date = MakeDate(2023, 1, 1);
+    CHECK(document.NewDateTime(date)->Equals(*document.NewDateTime(date)));
+    CHECK_FALSE(document.NewDateTime(date)->Equals(*document.NewDateTime(MakeDate(2023, 1, 2))));
+    CHECK_FALSE(document.NewDateTime(date)->Equals(*document.NewString("2023-01-01")));
+    CHECK_FALSE(document.NewString("2023-01-01")->Equals(*document.NewDateTime(date)));
+    CHECK_FALSE(document.NewDateTime(MakeOffsetDateTime(2023, 1, 1, 12, 0, 0, 0, 0))
+                    ->Equals(*document.NewDateTime(MakeOffsetDateTime(2023, 1, 1, 13, 0, 0, 0, 60))));
 }

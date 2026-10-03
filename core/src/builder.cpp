@@ -107,4 +107,8 @@ bool DocumentBuilder::Bytes(std::string_view value) {
     return Add(_document.NewBytes(value)) && Finish();
 }
 
+bool DocumentBuilder::DateTime(const tinycodec::DateTime& value) {
+    return Add(_document.NewDateTime(value)) && Finish();
+}
+
 }  // namespace tinycodec

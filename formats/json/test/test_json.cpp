@@ -6,6 +6,7 @@
 #include <string>
 #include <string_view>
 
+#include "datetimes.h"
 #include "tinycodec/json/json.h"
 
 using namespace tinycodec;
@@ -157,4 +158,14 @@ TEST_CASE("minus zero written as an integer comes back as a Double") {
     REQUIRE(json::Parse("-0", document).Ok());
     CHECK(document.Root()->GetType() == Type::Double);
     CHECK(json::Stringify(*document.Root()) == "-0.0");
+}
+
+TEST_CASE("Stringify returns an empty string for a tree with a DateTime") {
+    Document document;
+    CHECK(json::Stringify(*document.NewDateTime(MakeDate(2023, 1, 1))).empty());
+
+    Value* object = document.NewObject();
+    object->Set("a", document.NewInt(1));
+    object->Set("b", document.NewDateTime(MakeTime(1, 2, 3)));
+    CHECK(json::Stringify(*object).empty());
 }

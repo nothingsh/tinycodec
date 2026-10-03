@@ -6,6 +6,7 @@
 #include <string>
 #include <string_view>
 
+#include "datetimes.h"
 #include "tinycodec/document.h"
 #include "tinycodec/json/writer.h"
 #include "tinycodec/sink.h"
@@ -312,4 +313,16 @@ TEST_CASE("500 levels of nesting are written correctly") {
         REQUIRE(writer.ExitArray());
     }
     CHECK(sink.Str() == std::string(500, '[') + std::string(500, ']'));
+}
+
+TEST_CASE("a DateTime is rejected and nothing is written") {
+    StringSink sink;
+    json::Writer writer(sink);
+    CHECK_FALSE(writer.DateTime(MakeDate(2023, 1, 1)));
+    CHECK(sink.Str().empty());
+
+    CHECK(writer.EnterArray());
+    CHECK(writer.Int(1));
+    CHECK_FALSE(writer.DateTime(MakeTime(1, 2, 3)));
+    CHECK(sink.Str() == "[1");
 }
