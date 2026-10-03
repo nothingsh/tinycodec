@@ -21,6 +21,11 @@ if(NOT TINYCODEC_HAVE_FLOATING_POINT_CHARCONV)
 endif()
 
 add_library(tinycodec_toml STATIC
+    src/datetime_parser.cpp
+    src/number_parser.cpp
+    src/reader.cpp
+    src/string_parser.cpp
+    src/toml.cpp
     src/writer.cpp
 )
 add_library(tinycodec::toml ALIAS tinycodec_toml)
@@ -40,7 +45,15 @@ install(EXPORT tinycodec-toml-targets
 
 if(TINYCODEC_BUILD_TESTS)
     tinycodec_add_test(tinycodec_toml_test
+        test/test_datetime_parser.cpp
+        test/test_number_parser.cpp
+        test/test_reader.cpp
+        test/test_string_parser.cpp
+        test/test_tables.cpp
+        test/test_toml.cpp
         test/test_writer.cpp
     )
+    # Lets the tests reach the internal headers in src/.
+    target_include_directories(tinycodec_toml_test PRIVATE src)
     target_link_libraries(tinycodec_toml_test PRIVATE tinycodec::toml)
 endif()
