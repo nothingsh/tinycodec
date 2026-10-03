@@ -4,6 +4,7 @@ add_library(tinycodec_core STATIC
     src/document.cpp
     src/error.cpp
     src/sink.cpp
+    src/utf8.cpp
     src/value.cpp
 )
 add_library(tinycodec::core ALIAS tinycodec_core)
@@ -27,6 +28,7 @@ if(TINYCODEC_BUILD_TESTS)
         test/test_builder.cpp
         test/test_error.cpp
         test/test_sink.cpp
+        test/test_utf8.cpp
         test/test_value.cpp
     )
     target_link_libraries(tinycodec_core_test PRIVATE tinycodec::core)

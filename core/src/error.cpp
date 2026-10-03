@@ -11,6 +11,7 @@ const char* ErrorName(ErrorCode code) {
     case ErrorCode::InvalidEscape:  return "InvalidEscape";
     case ErrorCode::InvalidUtf8:    return "InvalidUtf8";
     case ErrorCode::DepthExceeded:  return "DepthExceeded";
+    case ErrorCode::Unsupported:    return "Unsupported";
     case ErrorCode::Aborted:        return "Aborted";
     }
     return "Unknown";
